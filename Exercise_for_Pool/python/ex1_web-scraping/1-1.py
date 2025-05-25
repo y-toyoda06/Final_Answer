@@ -5,7 +5,7 @@ import time
 import re
 import pandas as pd
 
-# ユーザーエージェントの設定
+#ユーザーエージェントの設定
 user_agents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.5; rv:126.0) Gecko/20100101 Firefox/126.0",
@@ -19,24 +19,23 @@ headers = {
 SLEEP_TIME = 3
 MAX_RECORDS = 50
 
+
+#指定URLから1ページ分のリンクを取得
 def get_url(url):
-    """指定URLから1ページ分のリンクを抽出する"""
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
     elems = soup.find_all("a", class_="style_titleLink___TtTO")
     links = [elem.attrs['href'] for elem in elems if '?' not in elem.attrs['href']]
     return links
 
-
-
+#ページをまたいで50件リンクを収集
 def collect_urls(base_url, max_records):
-    """ページをまたいでmax_records件までリンクを収集"""
     page = 1
     urls = []
 
     while len(urls) < max_records:
         url = base_url if page == 1 else f"{base_url}?p={page}"
-        print(f"ページ {page} を取得中...")
+        print(f"ページ {page} を取得中")
         links = get_url(url)
 
         if not links:
@@ -65,7 +64,7 @@ def get_store_info(url):
     number_tag = soup.find("span", class_="number")
     number = number_tag.get_text(strip=True) if number_tag else ""
     
-    #メールアドレス
+    #メールアドレス(見つけられず)
     #email_tag = soup.find()
     #email = email_tag.get_text(strip=True) if number_tag else ""
     email = ""
@@ -112,8 +111,6 @@ def main():
     urls = collect_urls(base_url, MAX_RECORDS)
     store_info = []
 
-    for u in urls:
-        print(u)
     for url in urls:
         store_info.append(get_store_info(url))
         print(f"done: {url}")

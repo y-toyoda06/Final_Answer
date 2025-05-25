@@ -4,19 +4,17 @@ import time
 import pandas as pd
 import re
 
-
+SLEEP_TIME = 3
+MAX_RECORDS = 50
 
 def get_store_urls(driver):
-    # 一覧ページから店舗リンク取得
+    #一覧ページから店舗リンク取得
     links = driver.find_elements(By.CSS_SELECTOR, "a.style_titleLink___TtTO")
     return [link.get_attribute("href") for link in links]
 
-
-    ...
-
 def parse_store_info(driver, url):
     driver.get(url)
-    time.sleep(3)
+    time.sleep(SLEEP_TIME)
 
     #店名
     try:
@@ -46,8 +44,8 @@ def parse_store_info(driver, url):
     pref, city, addr = split_address(address)
     
         
-    # お店のホームページをクリックしてURL取得
-    # お店のホームページURLとSSL
+    #お店のホームページをクリックしてURL取得
+    #お店のホームページURLとSSL
     try:
         link = driver.find_element(By.CSS_SELECTOR, ".url.go-off")
         homepage = link.get_attribute("href")
@@ -72,7 +70,7 @@ def parse_store_info(driver, url):
     }
         
         
-# 住所を分割
+#住所を分割
 def split_address(address):
     pattern = r"^(東京都|北海道|(?:京都|大阪)府|.{2,3}県)([^0-9]+)([\d\-]+)"
     match = re.match(pattern, address)
@@ -80,9 +78,6 @@ def split_address(address):
         return match.group(1), match.group(2), match.group(3) or ""
     else:
         return "", "", ""
-
-
-
 
     
 def main():
@@ -92,9 +87,9 @@ def main():
     time.sleep(3)
 
     collected_data = []
-    page_count = 1  # ページカウンタ
+    page_count = 1
 
-    while len(collected_data) < 50:
+    while len(collected_data) < MAX_RECORDS:
         print(f"\nページ {page_count} 開始 - URL: {driver.current_url}")
 
         # ストアURLの収集
@@ -103,25 +98,26 @@ def main():
 
 
         for url in urls:
-            if len(collected_data) >= 50:
+            if len(collected_data) >= MAX_RECORDS:
                 break
 
             store_info = parse_store_info(driver, url)
-            print(store_info)
             
-            if len(collected_data) >= 50:
-                break
+            
             collected_data.append(store_info)
             print(f"done: {store_info['店舗名']}")
+            
+        if len(collected_data) >= MAX_RECORDS:
+            break
 
-        # 「次へ」ボタンがあれば押す
+        #「次へ」ボタン押す
         try:
             driver.get(base_url)
-            time.sleep(3)
+            time.sleep(SLEEP_TIME)
             next_btn = driver.find_element(By.XPATH, '//a[./img[contains(@alt, "次")]]')
             current_url = driver.current_url
             next_btn.click()
-            time.sleep(3)
+            time.sleep(SLEEP_TIME)
             base_url = driver.current_url
             
             if current_url == driver.current_url:
@@ -136,7 +132,7 @@ def main():
             break
 
     print(f"総レコード数: {len(collected_data)} 件")
-     # CSVに保存
+     #CSVに保存
     df = pd.DataFrame(collected_data,columns=["店舗名","電話番号","メールアドレス","都道府県","市区町村","番地","建物名","URL","SSL"])
     df.to_csv("1-2.csv", index=False, encoding="utf-8-sig")
 
