@@ -47,7 +47,13 @@ def parse_store_info(driver, url):
     #お店のホームページをクリックしてURL取得
     #お店のホームページURLとSSL
     try:
-        link = driver.find_element(By.CSS_SELECTOR, ".url.go-off")
+        try:
+            link = driver.find_element(By.CSS_SELECTOR, ".url.go-off")
+        except:
+            link = driver.find_element(By.CSS_SELECTOR, ".sv-of.double")
+            
+            
+            
         homepage = link.get_attribute("href")
         ssl = homepage.startswith("https://")
     except:
